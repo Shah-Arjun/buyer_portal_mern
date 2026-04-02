@@ -6,6 +6,11 @@ const app = express()
 dotenv.config()
 
 
+// MIDDLEWARE
+app.use(express.json());  
+app.use(express.urlencoded({extended: true}))  
+
+
 //test api
 app.use('/', (req, res) => {
     res.send("This is home page")
