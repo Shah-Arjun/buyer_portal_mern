@@ -1,6 +1,7 @@
 const User = require('./../models/userModel')
 const bcrypt = require("bcryptjs")
 const jwt = require('jsonwebtoken')
+const sendEmail = require('./../services/sendEmail')
 
 
 //register user
@@ -75,5 +76,47 @@ exports.loginUser = async(req, res) => {
     res.status(200).json({
         message: "Login successful.",
         token
+    })
+}
+
+
+
+
+//forget password
+exports.forgetPassword = async(req, res) => {
+    const {email} = req.body     //forntend should send email
+
+    //if email not provided
+    if(!email) {
+        return res.status(400).json({
+            message: "Please enter an email"
+        })
+    }
+
+    const userExist = await User.findOne({email}) 
+    if(!userExist){
+        return res.status(404).json({
+            message: "Email is not registered."
+        })
+    }
+
+    //console.log(userExist)
+
+    //if user exist then send OTP to that email
+    const otp = Math.floor(Math.random() * 10000)   // 4 digit otp
+
+
+     // save OTP to db
+    userExist.otp = otp
+    await userExist.save()
+
+    await sendEmail({
+        email: email,
+        subject: "OTP for Buyer Portal password reset",
+        message: `${otp}`
+    })
+
+    res.status(200).json({
+        message: "OTP sent successfully"
     })
 }

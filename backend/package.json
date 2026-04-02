@@ -18,6 +18,7 @@
     "gitignore": "^0.7.0",
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^9.3.3",
+    "nodemailer": "^8.0.4",
     "nodemon": "^3.1.14"
   }
 }

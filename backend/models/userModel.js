@@ -16,7 +16,13 @@ const userSchema = new mongoose.Schema({
         type: String,
         enum: ["seller", "buyer"],
         default: "buyer",
+    },
+    otp: {
+        type: Number,
+        select: false
     }
+},{
+    timestamps: true
 });
 
 const User = mongoose.model('User', userSchema)
