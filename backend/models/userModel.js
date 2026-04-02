@@ -1,6 +1,7 @@
 const mongoose = require('mongoose')
 
-const userSchema = new Schema({
+
+const userSchema = new mongoose.Schema({
     name: {
         type: String,
     },
@@ -16,7 +17,7 @@ const userSchema = new Schema({
         enum: ["seller", "buyer"],
         default: "buyer",
     }
-})
+});
 
-const User = mongoose.model('User', 'userSchema')
+const User = mongoose.model('User', userSchema)
 module.exports = User

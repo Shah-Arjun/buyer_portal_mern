@@ -3,6 +3,10 @@ const dotenv = require('dotenv')
 const ConnectDB = require('./db/db')
 
 
+//routes import
+const authRoutes = require('./routes/authRoutes')
+
+
 const app = express()
 dotenv.config()
 
@@ -17,10 +21,11 @@ app.use(express.urlencoded({extended: true}))
 
 
 //test api
-app.use('/', (req, res) => {
-    res.send("This is home page")
-})
+// app.use('/', (req, res) => {
+//     res.send("This is home page")
+// })
 
+app.use('/api/auth', authRoutes)
 
 
 
