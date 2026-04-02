@@ -113,10 +113,99 @@ exports.forgetPassword = async(req, res) => {
     await sendEmail({
         email: email,
         subject: "OTP for Buyer Portal password reset",
-        message: `${otp}`
+        message: `The OTP for password reset is ${otp}`
     })
 
     res.status(200).json({
         message: "OTP sent successfully"
     })
+}
+
+
+
+
+//verify otp
+exports.verifyOtp = async (req, res) => {
+    const {email, otp} = req.body
+
+    if(!email || !otp){
+        return res.status(400).json({
+            message: "Please enter email and OTP"
+        })
+    }
+
+
+    //checks if email is registered or not
+    const userExist = await User.findOne({ email })
+    if(!userExist){
+        return res.status(404).json({
+            message: "This email is not registered"
+        })
+    }
+
+    // console.log(otp)
+    // console.log(userExist)
+
+    // checks if the otp matched or not
+    if(userExist.otp !== otp) {
+        res.status(400).json({
+            message: "Invalid OTP. Try again"
+        })
+    } else {
+        res.status(200).json({
+            message: "OTP verified"
+        })
+
+        //dispose OTP after verifyed so that it will not be matched next time
+        userExist.otp = undefined
+        userExist.isOtpVerified = true
+        await userExist.save()
+    }
+
+}
+
+
+
+
+
+//reset new password
+exports.resetPassword = async (req, res) => {
+    const {email, newPassword, confirmPassword} = req.body
+
+    if(!email || !newPassword || ! confirmPassword){
+        return res.status(400).json({
+            message: "Provide email, newPassword and confirmPassword"
+        })
+    }
+
+    //checks if newPassword and confirmPassword are same or not
+    if(newPassword !== confirmPassword) {
+        return res.status(400).json({
+            message: "newPassword and confirmPassword didn't match"
+        })
+    }
+
+    const userExist = await User.find({email})
+    if(userExist.length == 0){
+        return res.status(400).json({
+            message: "The email you entered is not registered"
+        })
+    }
+
+    //check otp verified or not
+    if(userExist[0].isOtpVerified !== true){
+        return res.status(403).json({
+            message: "You cannot perform this action"
+        })
+    }
+    
+    //replace the password with newPassword in db
+    userExist[0].password = bcrypt.hashSync(newPassword, 10)
+    userExist[0].isOtpVerified = false
+    await userExist[0].save()
+
+    res.status(200).json({
+        message: "Password changed successfully"
+    })
+
 }
