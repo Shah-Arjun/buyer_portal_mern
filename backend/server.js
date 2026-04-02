@@ -1,9 +1,14 @@
 const express = require('express')
 const dotenv = require('dotenv')
+const ConnectDB = require('./db/db')
 
 
 const app = express()
 dotenv.config()
+
+
+//CALLING DB CONNECTION FUNCTION
+ConnectDB()
 
 
 // MIDDLEWARE
