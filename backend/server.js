@@ -5,6 +5,7 @@ const ConnectDB = require('./db/db')
 
 //routes import
 const authRoutes = require('./routes/authRoutes')
+const propertyRoutes = require('./routes/propertyRoutes')
 
 
 const app = express()
@@ -26,6 +27,7 @@ app.use(express.urlencoded({extended: true}))
 // })
 
 app.use('/api/auth', authRoutes)
+app.use('/api/property', propertyRoutes)
 
 
 
