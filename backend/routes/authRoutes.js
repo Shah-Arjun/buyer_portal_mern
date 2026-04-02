@@ -1,4 +1,4 @@
-const { registerUser, loginUser, forgetPassword, verifyOtp, resetPassword } = require('../controllers/authController')
+const { registerUser, loginUser, forgetPassword, verifyOtp, resetPassword } = require('../controllers/auth/authController')
 const catchAsync = require('./../services/catchAsync')
 
 const router = require('express').Router()
