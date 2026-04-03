@@ -6,9 +6,10 @@ A buyer portal with authentication developed using MERN Stack
 # Buyer Portal
 
 ## Setup
-1) → npm install
-2) → cd frontend : npm run dev
-3) - cd backend → npm start
+1) -> clone
+2) -> npm install
+3) -> cd frontend : npm run dev
+4) -> cd backend → npm start
 
 ## Features
 - Register/Login
