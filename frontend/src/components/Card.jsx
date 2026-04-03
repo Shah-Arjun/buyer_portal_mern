@@ -8,62 +8,61 @@ function Card({ property }) {
   const [isFavourite, setIsFavourite] = useState(false);
 
   // Toggle favourite with optimistic update
-  const toggleFavourite = async (e) => {
-    e.stopPropagation();
+const toggleFavourite = async (e) => {
+  e.stopPropagation();
+  if (!property?._id) return;
 
+  const previousState = isFavourite;
+
+  try {
+    // Optimistic UI update
+    setIsFavourite((prev) => !prev);
+
+    // FIXED: Use correct endpoint
+    const res = await API.post("/favourites/toggle", {
+      propertyId: property._id,
+    });
+
+    // Update with backend response
+    setIsFavourite(res.data.isFavourite === true);   // make sure it's boolean
+
+    // Notify Navbar and Dashboard to refresh
+    window.dispatchEvent(new Event("favouritesUpdated"));
+  } catch (err) {
+    console.error("Toggle favourite failed:", err);
+
+    if (err.response?.status === 404) {
+      console.warn("Toggle endpoint not found. Check your route mounting.");
+    } else {
+      setIsFavourite(previousState); // revert on real error
+    }
+  }
+};
+
+  // Check initial favourite status
+useEffect(() => {
+  const checkFavourite = async () => {
     if (!property?._id) return;
 
-    const previousState = isFavourite;
-
     try {
-      // Optimistic UI update
-      setIsFavourite((prev) => !prev);
-
-      const res = await API.post("/favourite/toggle", {
-        propertyId: property._id,
-      });
-
-      // Update with backend confirmation
-      setIsFavourite(res.data.isFavourite);
-
-      // Notify Navbar to refresh count
-      window.dispatchEvent(new Event("favouritesUpdated"));
+      const res = await API.get("/favourites");        // ← This is correct
+      const exists = res.data.favourites?.some(
+        (item) => item._id === property._id
+      );
+      setIsFavourite(exists);
     } catch (err) {
-      console.error("Toggle favourite failed:", err);
-
       if (err.response?.status === 404) {
-        console.warn("Toggle endpoint (/favourite/toggle) not implemented yet on backend");
+        console.warn("Favourites endpoint not ready");
+        setIsFavourite(false);
       } else {
-        // Revert only on real errors (not 404)
-        setIsFavourite(previousState);
+        console.error("Failed to fetch favourite status:", err);
+        setIsFavourite(false);
       }
     }
   };
 
-  // Check initial favourite status
-  useEffect(() => {
-    const checkFavourite = async () => {
-      if (!property?._id) return;
-
-      try {
-        const res = await API.get("/favourites");
-        const exists = res.data.favourites?.some(
-          (item) => item._id === property._id
-        );
-        setIsFavourite(exists);
-      } catch (err) {
-        if (err.response?.status === 404) {
-          console.warn("Favourites endpoint (/favourites) not ready on backend");
-          setIsFavourite(false);
-        } else {
-          console.error("Failed to fetch favourite status:", err);
-          setIsFavourite(false);
-        }
-      }
-    };
-
-    checkFavourite();
-  }, [property._id]);
+  checkFavourite();
+}, [property._id]);
 
   const handleViewDetails = () => {
     navigate(`/property/${property._id}`);

@@ -35,8 +35,7 @@ function Navbar() {
 
       try {
         const res = await API.get("/favourites");
-        setFavouritesCount(res.data.favourites?.length || 0);
-      } catch (err) {
+setFavouritesCount(res.data.favourites?.length || 0);      } catch (err) {
         if (err.response?.status === 404) {
           console.warn("Favourites endpoint (/favourites) not implemented yet on backend");
           setFavouritesCount(0);

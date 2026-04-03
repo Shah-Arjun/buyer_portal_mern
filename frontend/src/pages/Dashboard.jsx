@@ -37,37 +37,41 @@ function Dashboard() {
   useEffect(() => {
     fetchFavourites();
 
-    // Listen for toggle updates from Card component
+    // Listen for updates from Card component
     const handleUpdate = () => fetchFavourites();
     window.addEventListener("favouritesUpdated", handleUpdate);
 
-    return () => {
-      window.removeEventListener("favouritesUpdated", handleUpdate);
-    };
+    return () => window.removeEventListener("favouritesUpdated", handleUpdate);
   }, [user]);
 
-  // Remove favourite (calls backend toggle)
+  // Remove favourite using backend toggle
   const removeFavourite = async (propertyId) => {
+    if (!propertyId) return;
+
     try {
-      await API.post("/favourite/toggle", { propertyId });
+      // Call the same toggle endpoint used in Card
+      await API.post("/favourites/toggle", { propertyId });
 
-      // Refresh the list
-      fetchFavourites();
+      // Refresh the list after removal
+      await fetchFavourites();
 
-      // Notify Navbar
+      // Notify Navbar to update count
       window.dispatchEvent(new Event("favouritesUpdated"));
     } catch (err) {
       console.error("Failed to remove favourite:", err);
+      alert("Failed to remove favourite. Please try again.");
     }
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50">
         <Navbar />
-        <div className="text-center mt-20">
-          <div className="animate-spin w-8 h-8 border-4 border-indigo-600 border-t-transparent rounded-full mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading favourites...</p>
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <div className="text-center">
+            <div className="animate-spin w-8 h-8 border-4 border-indigo-600 border-t-transparent rounded-full mx-auto"></div>
+            <p className="mt-4 text-gray-600">Loading your favourites...</p>
+          </div>
         </div>
       </div>
     );
@@ -146,7 +150,7 @@ function Dashboard() {
 
             <h2 className="text-xl font-semibold mb-5 flex items-center gap-2">
               <Heart className="w-6 h-6 text-red-500" />
-              Favourite Properties
+              Favourite Properties ({favourites.length})
             </h2>
 
             {favourites.length === 0 ? (
@@ -163,7 +167,7 @@ function Dashboard() {
               </div>
             ) : (
               <>
-                {/* Desktop Table */}
+                {/* Desktop Table View */}
                 <div className="hidden lg:block bg-white rounded-3xl shadow overflow-hidden">
                   <table className="w-full">
                     <thead>
@@ -176,7 +180,7 @@ function Dashboard() {
                     </thead>
                     <tbody>
                       {favourites.map((property) => (
-                        <tr key={property._id} className="border-b hover:bg-gray-50">
+                        <tr key={property._id} className="border-b hover:bg-gray-50 transition">
                           <td className="py-5 px-6 font-medium">{property.title}</td>
                           <td className="py-5 px-6 text-gray-600">{property.location}</td>
                           <td className="py-5 px-6 text-right font-bold text-indigo-600">
@@ -186,7 +190,7 @@ function Dashboard() {
                             <div className="flex justify-center gap-3">
                               <button
                                 onClick={() => navigate(`/property/${property._id}`)}
-                                className="flex items-center gap-2 px-4 py-2 bg-indigo-50 text-indigo-700 rounded-2xl hover:bg-indigo-100"
+                                className="flex items-center gap-2 px-4 py-2 bg-indigo-50 text-indigo-700 rounded-2xl hover:bg-indigo-100 transition"
                               >
                                 <Eye className="w-5 h-5" />
                                 View
@@ -211,13 +215,13 @@ function Dashboard() {
                     <div key={property._id} className="bg-white rounded-3xl shadow overflow-hidden">
                       <div className="relative">
                         <img
-                          src={property.image}
+                          src={property.image || "https://via.placeholder.com/400x300"}
                           alt={property.title}
                           className="w-full h-48 object-cover"
                         />
                         <button
                           onClick={() => removeFavourite(property._id)}
-                          className="absolute top-4 right-4 p-3 bg-white rounded-2xl shadow hover:bg-red-50 text-red-500"
+                          className="absolute top-4 right-4 p-3 bg-white rounded-2xl shadow hover:bg-red-50 text-red-500 transition"
                         >
                           <Trash2 className="w-5 h-5" />
                         </button>
@@ -231,9 +235,9 @@ function Dashboard() {
                           </span>
                           <button
                             onClick={() => navigate(`/property/${property._id}`)}
-                            className="px-5 py-2 bg-indigo-600 text-white rounded-2xl text-sm hover:bg-indigo-700"
+                            className="px-5 py-2 bg-indigo-600 text-white rounded-2xl text-sm hover:bg-indigo-700 transition"
                           >
-                            View
+                            View Details
                           </button>
                         </div>
                       </div>
