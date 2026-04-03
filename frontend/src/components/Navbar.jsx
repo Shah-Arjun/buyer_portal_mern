@@ -74,10 +74,10 @@ function Navbar() {
 
             {/* Add Property Button */}
             <button
-              onClick={() => navigate("/add-property")}
+              onClick={() => navigate("/login")}
               className="px-5 py-2 rounded-full bg-indigo-600 text-white font-medium hover:bg-indigo-500 transition"
             >
-              Add Property
+              Become Seller
             </button>
 
             {/* Favourites Button */}
@@ -91,7 +91,7 @@ function Navbar() {
                   {favouritesCount}
                 </span>
               )}
-              <span className="hidden sm:inline font-medium">Favourites</span>
+              <span className="hidden sm:inline font-medium">My Favourites</span>
             </button>
 
             {/* Not Logged In */}
@@ -111,7 +111,7 @@ function Navbar() {
                 {/* User Info */}
                 <div className="text-right hidden sm:block">
                   <p className="text-sm font-semibold text-gray-800">{user.name}</p>
-                  <p className="text-xs text-gray-500 capitalize">{user.role || "User"}</p>
+                  <p className="text-xs text-gray-500 capitalize">{user.role}</p>
                 </div>
 
                 {/* Avatar */}
@@ -119,7 +119,7 @@ function Navbar() {
                   {getInitial(user.name)}
                 </div>
 
-                {/* Chevron */}
+                {/* dropdown icon */}
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   className={`w-4 h-4 text-gray-500 transition-transform ${dropdownOpen ? "rotate-180" : ""}`}
@@ -130,7 +130,7 @@ function Navbar() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                 </svg>
 
-                {/* Dropdown */}
+                {/* dropdown */}
                 {dropdownOpen && (
                   <div className="absolute right-6 mt-14 w-56 bg-white border border-gray-200 rounded-2xl shadow-xl py-1 z-50">
                     <div className="px-4 py-3 border-b">

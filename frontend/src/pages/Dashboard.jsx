@@ -137,7 +137,7 @@ function Dashboard() {
                   <table className="w-full">
                     <thead>
                       <tr className="border-b bg-gray-50">
-                        <th className="text-left py-5 px-6 font-medium text-gray-600">Property Type</th>
+                        <th className="text-left py-5 px-6 font-medium text-gray-600">Category</th>
                         <th className="text-left py-5 px-6 font-medium text-gray-600">Title</th>
                         <th className="text-left py-5 px-6 font-medium text-gray-600">Location</th>
                         <th className="text-right py-5 px-6 font-medium text-gray-600">Price</th>

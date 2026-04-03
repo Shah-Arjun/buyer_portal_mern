@@ -42,16 +42,16 @@ exports.addProperty = async(req, res) => {
 
 //get all property  --> by all users
 exports.getProperties = async (req, res) => {
-    const property = await Property.find()
-    if(property.length == 0){
+    const properties = await Property.find()
+    if(properties.length == 0){
         res.status(400).json({
             message: "No property found",
-            property: []        
+            properties: []        
         })
     } else {
         res.status(200).json({
-            message: "Property found",
-            property             
+            message: "Properties found",
+            properties             
         })
     }
 }
@@ -77,7 +77,7 @@ exports.getProperty = async (req, res) => {
     } else {
         res.status(200).json({
             message: "Property found with that id",
-            Property,            
+            property,            
         })
     }
 }
@@ -125,16 +125,16 @@ exports.deleteProperty = async (req, res) => {
 exports.getMyProperties = async (req, res) => {
     const ownerId = req.user.id
 
-    const property = await Property.find({ owner : ownerId })
-    if(property.length == 0){
+    const properties = await Property.find({ owner : ownerId })
+    if(properties.length == 0){
         res.status(400).json({
             message: "No property added by you",
-            property: []        
+            properties: []        
         })
     } else {
         res.status(200).json({
-            message: `${property.length} properties found`,
-            property             
+            message: `${properties.length} properties found`,
+            properties             
         })
     }
 }

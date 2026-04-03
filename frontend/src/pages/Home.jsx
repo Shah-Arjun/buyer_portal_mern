@@ -52,7 +52,7 @@ function HomePage() {
             placeholder="Search location, property type..."
             className="flex-grow px-4 py-3 text-gray-700 outline-none"
           />
-          <button className="bg-indigo-500 px-8 text-white font-semibold hover:bg-indigo-400 transition">
+          <button className="bg-indigo-500 px-8 border border-white rounded-full text-white font-semibold hover:bg-indigo-400 transition">
             Search
           </button>
         </div>
@@ -82,7 +82,7 @@ function HomePage() {
           </div>
         )}
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
           {properties.map((property) => (
             <Card key={property._id} property={property} />
           ))}
