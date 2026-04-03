@@ -116,7 +116,7 @@ function Navbar() {
 
                 {/* dropdown menu */}
                 {dropdownOpen && (
-                  <div className="absolute right-6 top-16 right-38 w-56 bg-white border border-gray-200 rounded-2xl shadow-xl py-1 z-50">
+                  <div className="absolute top-16 right-38 w-56 bg-white border border-gray-200 rounded-2xl shadow-xl py-1 z-50">
                     <div className="px-4 py-3 border-b">
                       <p className="font-semibold text-gray-900">{user.name}</p>
                       <p className="text-sm text-gray-500 truncate">{user.email}</p>
