@@ -1,52 +1,72 @@
 import React, { useState, useEffect } from "react";
-import Logo from "../assets/property.png";
 import { useNavigate } from "react-router-dom";
+import API from "../services/authServices";
 import { Heart } from "lucide-react";
+import Logo from "../assets/property.png";
 
 function Navbar() {
   const navigate = useNavigate();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [favouritesCount, setFavouritesCount] = useState(0);
 
-  // Lazy load user
+  // Lazy load user from localStorage
   const [user, setUser] = useState(() => {
     const token = localStorage.getItem("token");
     const storedUser = localStorage.getItem("user");
+
     if (token && storedUser) {
       try {
         return JSON.parse(storedUser);
       } catch (err) {
-        console.log(err)
+        console.error("Failed to parse user from localStorage:", err);
         return null;
       }
     }
     return null;
   });
 
-  // Load favourites count
+  // Fetch favourites count
   useEffect(() => {
-    const updateFavouritesCount = () => {
-      const favs = JSON.parse(localStorage.getItem("favourites") || "[]");
-      setFavouritesCount(favs.length);
+    const fetchFavouritesCount = async () => {
+      if (!user) {
+        setFavouritesCount(0);
+        return;
+      }
+
+      try {
+        const res = await API.get("/favourites");
+        setFavouritesCount(res.data.favourites?.length || 0);
+      } catch (err) {
+        if (err.response?.status === 404) {
+          console.warn("Favourites endpoint (/favourites) not implemented yet on backend");
+          setFavouritesCount(0);
+        } else {
+          console.error("Failed to fetch favourites count:", err);
+          setFavouritesCount(0);
+        }
+      }
     };
 
-    updateFavouritesCount();
+    fetchFavouritesCount();
 
-    // Listen for changes in favourites (in case added from other pages)
-    window.addEventListener("storage", updateFavouritesCount);
-    return () => window.removeEventListener("storage", updateFavouritesCount);
-  }, []);
+    // Listen for updates from Card component
+    const handleFavouritesUpdate = () => fetchFavouritesCount();
+    window.addEventListener("favouritesUpdated", handleFavouritesUpdate);
+
+    return () => {
+      window.removeEventListener("favouritesUpdated", handleFavouritesUpdate);
+    };
+  }, [user]); // Re-run when user changes (login/logout)
 
   const logout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
     setUser(null);
+    setFavouritesCount(0);
     navigate("/auth");
   };
 
-  const getInitial = (name) => {
-    return name ? name.charAt(0).toUpperCase() : "?";
-  };
+  const getInitial = (name) => (name ? name.charAt(0).toUpperCase() : "?");
 
   return (
     <header className="bg-white shadow-md sticky top-0 z-50">
@@ -54,8 +74,8 @@ function Navbar() {
         <div className="flex justify-between items-center h-16">
 
           {/* Logo */}
-          <div 
-            className="flex-shrink-0 cursor-pointer" 
+          <div
+            className="flex-shrink-0 cursor-pointer"
             onClick={() => navigate("/")}
           >
             <img className="h-10 w-auto" src={Logo} alt="Adam's Real Estate" />
@@ -72,9 +92,9 @@ function Navbar() {
           {/* Right Side */}
           <div className="hidden md:flex items-center gap-4">
 
-            {/* Add Property Button */}
+            {/* Become Seller Button */}
             <button
-              onClick={() => navigate("/login")}
+              onClick={() => navigate("/add-property")}
               className="px-5 py-2 rounded-full bg-indigo-600 text-white font-medium hover:bg-indigo-500 transition"
             >
               Become Seller
@@ -91,10 +111,10 @@ function Navbar() {
                   {favouritesCount}
                 </span>
               )}
-              <span className="hidden sm:inline font-medium">My Favourites</span>
+              <span className="hidden sm:inline font-medium">Favourites</span>
             </button>
 
-            {/* Not Logged In */}
+            {/* Auth Section */}
             {!user ? (
               <button
                 onClick={() => navigate("/auth")}
@@ -103,23 +123,19 @@ function Navbar() {
                 Login / Sign Up
               </button>
             ) : (
-              /* Logged In User */
-              <div 
-                className="flex items-center gap-2.5 cursor-pointer py-1 px-2 rounded-xl hover:bg-gray-100 transition"
+              <div
+                className="flex items-center gap-2.5 cursor-pointer py-1 px-2 rounded-xl hover:bg-gray-100 transition relative"
                 onClick={() => setDropdownOpen(!dropdownOpen)}
               >
-                {/* User Info */}
                 <div className="text-right hidden sm:block">
                   <p className="text-sm font-semibold text-gray-800">{user.name}</p>
                   <p className="text-xs text-gray-500 capitalize">{user.role}</p>
                 </div>
 
-                {/* Avatar */}
                 <div className="w-9 h-9 rounded-full bg-indigo-600 text-white flex items-center justify-center font-bold text-lg">
                   {getInitial(user.name)}
                 </div>
 
-                {/* dropdown icon */}
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   className={`w-4 h-4 text-gray-500 transition-transform ${dropdownOpen ? "rotate-180" : ""}`}
@@ -130,16 +146,19 @@ function Navbar() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                 </svg>
 
-                {/* dropdown */}
+                {/* Dropdown Menu */}
                 {dropdownOpen && (
-                  <div className="absolute right-6 mt-14 w-56 bg-white border border-gray-200 rounded-2xl shadow-xl py-1 z-50">
+                  <div className="absolute right-0 mt-14 w-56 bg-white border border-gray-200 rounded-2xl shadow-xl py-1 z-50">
                     <div className="px-4 py-3 border-b">
                       <p className="font-semibold text-gray-900">{user.name}</p>
                       <p className="text-sm text-gray-500 truncate">{user.email}</p>
                     </div>
 
                     <button
-                      onClick={() => { navigate("/dashboard"); setDropdownOpen(false); }}
+                      onClick={() => {
+                        navigate("/dashboard");
+                        setDropdownOpen(false);
+                      }}
                       className="block w-full text-left px-4 py-2.5 hover:bg-gray-100"
                     >
                       Dashboard
