@@ -17,6 +17,11 @@ const propertySchema = new mongoose.Schema({
         minlength: 60,
         required: true
     },
+    category: {
+        type: String,
+        enum: ['apartment', 'house', 'land', 'commercial', 'flat', 'Studio'],
+        required: true
+    },
     location: {
         type: String,
         required: true
@@ -34,6 +39,10 @@ const propertySchema = new mongoose.Schema({
         enum: ['available', 'sold'],
         default: 'available'
     },
+    isFeatured: {
+        type: Boolean,
+        default: false
+    }
 },{
     timestamps:true
 })

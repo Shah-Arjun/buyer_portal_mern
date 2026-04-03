@@ -2,45 +2,76 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import { Heart, Trash2, ArrowLeft, User, Home, Settings, Eye } from "lucide-react";
+import API from "../services/authServices";
 
 function Dashboard() {
   const navigate = useNavigate();
 
   const [user] = useState(() => {
     const storedUser = localStorage.getItem("user");
-    if (storedUser) {
-      try {
-        return JSON.parse(storedUser);
-      } catch (err) {
-        console.log(err);
-        return null;
-      }
-    }
-    return null;
+    return storedUser ? JSON.parse(storedUser) : null;
   });
 
-  const [favourites, setFavourites] = useState(() => {
-    return JSON.parse(localStorage.getItem("favourites") || "[]");
-  });
+  const [favourites, setFavourites] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch favourites from backend
+  const fetchFavourites = async () => {
+    if (!user) {
+      setFavourites([]);
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const res = await API.get("/favourites");
+      setFavourites(res.data.favourites || []);
+    } catch (err) {
+      console.error("Failed to fetch favourites:", err);
+      setFavourites([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const handleStorageChange = () => {
-      const updatedFavs = JSON.parse(localStorage.getItem("favourites") || "[]");
-      setFavourites(updatedFavs);
+    fetchFavourites();
+
+    // Listen for toggle updates from Card component
+    const handleUpdate = () => fetchFavourites();
+    window.addEventListener("favouritesUpdated", handleUpdate);
+
+    return () => {
+      window.removeEventListener("favouritesUpdated", handleUpdate);
     };
+  }, [user]);
 
-    window.addEventListener("storage", handleStorageChange);
-    return () => window.removeEventListener("storage", handleStorageChange);
-  }, []);
+  // Remove favourite (calls backend toggle)
+  const removeFavourite = async (propertyId) => {
+    try {
+      await API.post("/favourite/toggle", { propertyId });
 
-  const removeFavourite = (id) => {
-    const updatedFavs = favourites.filter(
-      (item) => item._id !== id && item.id !== id
-    );
-    localStorage.setItem("favourites", JSON.stringify(updatedFavs));
-    setFavourites(updatedFavs);
-    window.dispatchEvent(new Event("storage"));
+      // Refresh the list
+      fetchFavourites();
+
+      // Notify Navbar
+      window.dispatchEvent(new Event("favouritesUpdated"));
+    } catch (err) {
+      console.error("Failed to remove favourite:", err);
+    }
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <Navbar />
+        <div className="text-center mt-20">
+          <div className="animate-spin w-8 h-8 border-4 border-indigo-600 border-t-transparent rounded-full mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading favourites...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -49,7 +80,7 @@ function Dashboard() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 lg:py-8">
         <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
 
-          {/* Sidebar - Hidden on mobile, shown on lg+ */}
+          {/* Sidebar */}
           <div className="lg:w-72 bg-white rounded-3xl shadow p-6 h-fit lg:sticky lg:top-24">
             <button
               onClick={() => navigate("/")}
@@ -106,7 +137,7 @@ function Dashboard() {
                 <p className="text-gray-600">Manage your favourite properties</p>
               </div>
 
-              <div className="bg-white px-5 py-3 rounded-2xl shadow flex items-center gap-3 whitespace-nowrap">
+              <div className="bg-white px-5 py-3 rounded-2xl shadow flex items-center gap-3">
                 <Heart className="w-5 h-5 text-red-500" />
                 <span className="font-semibold hidden sm:inline">Total Favourites:</span>
                 <span className="text-3xl font-bold text-indigo-600">{favourites.length}</span>
@@ -132,12 +163,11 @@ function Dashboard() {
               </div>
             ) : (
               <>
-                {/* Desktop Table View */}
+                {/* Desktop Table */}
                 <div className="hidden lg:block bg-white rounded-3xl shadow overflow-hidden">
                   <table className="w-full">
                     <thead>
                       <tr className="border-b bg-gray-50">
-                        <th className="text-left py-5 px-6 font-medium text-gray-600">Category</th>
                         <th className="text-left py-5 px-6 font-medium text-gray-600">Title</th>
                         <th className="text-left py-5 px-6 font-medium text-gray-600">Location</th>
                         <th className="text-right py-5 px-6 font-medium text-gray-600">Price</th>
@@ -146,35 +176,20 @@ function Dashboard() {
                     </thead>
                     <tbody>
                       {favourites.map((property) => (
-                        <tr key={property._id} className="border-b hover:bg-gray-50 transition">
-                          
-                          <td className="py-4 px-6">
-                            <p className="font-semibold text-sm text-gray-800 line-clamp-2">
-                                type
-                              </p>
-                          </td>
-
-                          <td className="py-4 px-4">
-                            <div className="flex items-center gap-4">
-                              <p className="font-semibold text-sm text-gray-800 line-clamp-2">
-                                {property.title}
-                              </p>
-                            </div>
-                          </td>
-
-                          <td className="py-4 px-4 text-sm text-gray-600">{property.location}</td>
-
-                          <td className="py-4 px-4 text-right text-sm font-bold text-indigo-600">
+                        <tr key={property._id} className="border-b hover:bg-gray-50">
+                          <td className="py-5 px-6 font-medium">{property.title}</td>
+                          <td className="py-5 px-6 text-gray-600">{property.location}</td>
+                          <td className="py-5 px-6 text-right font-bold text-indigo-600">
                             Rs. {Number(property.price).toLocaleString()}
                           </td>
-
-                          <td className="py-4 px-4">
+                          <td className="py-5 px-6">
                             <div className="flex justify-center gap-3">
                               <button
                                 onClick={() => navigate(`/property/${property._id}`)}
-                                className="flex items-center gap-2 px-4 bg-indigo-50 text-indigo-700 rounded-2xl hover:bg-indigo-100 transition"
+                                className="flex items-center gap-2 px-4 py-2 bg-indigo-50 text-indigo-700 rounded-2xl hover:bg-indigo-100"
                               >
                                 <Eye className="w-5 h-5" />
+                                View
                               </button>
                               <button
                                 onClick={() => removeFavourite(property._id)}
@@ -184,47 +199,41 @@ function Dashboard() {
                               </button>
                             </div>
                           </td>
-
                         </tr>
                       ))}
                     </tbody>
                   </table>
                 </div>
 
-                {/* Mobile & Tablet Card View */}
+                {/* Mobile Card View */}
                 <div className="grid md:grid-cols-2 gap-4 lg:hidden">
                   {favourites.map((property) => (
-                    <div
-                      key={property._id}
-                      className="bg-white rounded-3xl shadow overflow-hidden"
-                    >
+                    <div key={property._id} className="bg-white rounded-3xl shadow overflow-hidden">
                       <div className="relative">
                         <img
-                          src={property.image || "https://via.placeholder.com/400x300"}
+                          src={property.image}
                           alt={property.title}
                           className="w-full h-48 object-cover"
                         />
                         <button
                           onClick={() => removeFavourite(property._id)}
-                          className="absolute top-4 right-4 p-3 bg-white rounded-2xl shadow hover:bg-red-50 text-red-500 transition"
+                          className="absolute top-4 right-4 p-3 bg-white rounded-2xl shadow hover:bg-red-50 text-red-500"
                         >
                           <Trash2 className="w-5 h-5" />
                         </button>
                       </div>
-
                       <div className="p-5">
                         <h3 className="font-semibold text-lg line-clamp-2">{property.title}</h3>
                         <p className="text-gray-500 text-sm mt-1">📍 {property.location}</p>
-
                         <div className="mt-4 flex justify-between items-center">
                           <span className="text-2xl font-bold text-indigo-600">
                             Rs. {Number(property.price).toLocaleString()}
                           </span>
                           <button
                             onClick={() => navigate(`/property/${property._id}`)}
-                            className="px-5 py-2 bg-indigo-600 text-white rounded-2xl text-sm hover:bg-indigo-700 transition"
+                            className="px-5 py-2 bg-indigo-600 text-white rounded-2xl text-sm hover:bg-indigo-700"
                           >
-                            View Details
+                            View
                           </button>
                         </div>
                       </div>
