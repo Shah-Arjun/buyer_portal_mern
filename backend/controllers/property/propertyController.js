@@ -117,3 +117,25 @@ exports.deleteProperty = async (req, res) => {
         message: "Property deleted successfully"
     })
 }
+
+
+
+
+//get my all properties  --> by all seller/owner
+exports.getMyProperties = async (req, res) => {
+    console.log("hello")
+    const ownerId = req.user.id
+
+    const property = await Property.find({ owner : ownerId })
+    if(property.length == 0){
+        res.status(400).json({
+            message: "No property added by you",
+            property: []        
+        })
+    } else {
+        res.status(200).json({
+            message: `${property.length} properties found`,
+            property             
+        })
+    }
+}
