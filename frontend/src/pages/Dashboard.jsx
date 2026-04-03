@@ -4,6 +4,9 @@ import Navbar from "../components/Navbar";
 import { Heart, Trash2, ArrowLeft, User, Home, Settings, Eye } from "lucide-react";
 import API from "../services/authServices";
 
+
+
+
 function Dashboard() {
   const navigate = useNavigate();
 
@@ -14,6 +17,8 @@ function Dashboard() {
 
   const [favourites, setFavourites] = useState([]);
   const [loading, setLoading] = useState(true);
+
+
 
   // Fetch favourites from backend
   const fetchFavourites = async () => {
@@ -33,6 +38,8 @@ function Dashboard() {
       setLoading(false);
     }
   };
+
+
 
   useEffect(() => {
     fetchFavourites();
