@@ -6,24 +6,54 @@ function Navbar() {
   const navigate = useNavigate();
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
-  const token = localStorage.getItem("token"); // check login
 
+  // lazy load user from localStorage
+  const [user, setUser] = useState(() => {
+    const token = localStorage.getItem("token");
+    const storedUser = localStorage.getItem("user");
+
+    if(token && storedUser){
+      try{
+        return JSON.parse(storedUser);
+      }catch (err) {
+        console.log(err)
+        return null;
+      }
+    }
+    return null;
+  });
+
+
+  //handle logout
   const logout = () => {
     localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    setUser(null);
     navigate("/auth");
   };
+
+
+  //get 2st letter of name
+  const getInitial = (name) => {
+    return name ? name.charAt(0).toUpperCase() : "?";
+  };
+
+
 
   return (
     <header className="bg-white shadow-md sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
 
-          {/* Logo */}
-          <div className="flex-shrink-0 cursor-pointer" onClick={() => navigate("/")}>
+          {/* logo */}
+          <div 
+            className="flex-shrink-0 cursor-pointer" 
+            onClick={() => navigate("/")}
+          >
             <img className="h-10 w-auto" src={Logo} alt="Adam's Real Estate" />
           </div>
 
-          {/* Nav Links */}
+          {/* nav links */}
           <nav className="hidden md:flex space-x-8">
             <a href="/" className="text-gray-700 hover:text-indigo-600 font-medium">Home</a>
             <a href="/properties" className="text-gray-700 hover:text-indigo-600 font-medium">Properties</a>
@@ -31,56 +61,90 @@ function Navbar() {
             <a href="/contact" className="text-gray-700 hover:text-indigo-600 font-medium">Contact</a>
           </nav>
 
-          {/* Right Side */}
-          <div className="hidden md:flex items-center space-x-4">
+          {/* right side */}
+          <div className="hidden md:flex items-center gap-4">
 
-            {/* Add Property (always visible) */}
+            {/* add property button */}
             <button
-              onClick={() => navigate("/auth")}
-              className="px-4 py-2 rounded-full bg-indigo-600 text-white font-medium hover:bg-indigo-500 transition"
+              onClick={() => navigate("/add-property")}
+              className="px-5 py-2 rounded-full bg-indigo-600 text-white font-medium hover:bg-indigo-500 transition"
             >
               Add Property
             </button>
 
-            {/* NOT LOGGED IN */}
-            {!token ? (
+            {/*if not logged in */}
+            {!user ? (
               <button
                 onClick={() => navigate("/auth")}
-                className="px-4 py-2 rounded-full border border-indigo-600 text-indigo-600 font-medium hover:bg-indigo-50 transition"
+                className="px-5 py-2 rounded-full border border-indigo-600 text-indigo-600 font-medium hover:bg-indigo-50 transition"
               >
-                Login / SignUp
+                Login / Sign Up
               </button>
             ) : (
-              /* LOGGED IN USER */
-              <div className="relative">
-                <div
-                  onClick={() => setDropdownOpen(!dropdownOpen)}
-                  className="w-10 h-10 rounded-full bg-indigo-600 text-white flex items-center justify-center cursor-pointer"
-                >
-                  👤
+              /* if logged in user  */
+              <div 
+                className="flex items-center gap-2.5 cursor-pointer py-1 px-2 rounded-xl hover:bg-gray-100 transition"
+                onClick={() => setDropdownOpen(!dropdownOpen)}
+              >
+                {/* user info in navbar */}
+                <div className="text-right hidden sm:block">
+                  <p className="text-sm font-semibold text-gray-800">{user.name}</p>
+                  <p className="text-xs text-gray-500 capitalize">{user.role || "User"}</p>
                 </div>
 
-                {/* Dropdown */}
+                {/* avatar */}
+                <div className="w-9 h-9 rounded-full bg-indigo-600 text-white flex items-center justify-center font-bold text-lg">
+                  {getInitial(user.name)}
+                </div>
+
+
+
+                {/* dropdown indicator */}
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className={`w-4 h-4 text-gray-500 transition-transform duration-200 ${
+                    dropdownOpen ? "rotate-180" : ""
+                  }`}
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+
+
+
+                {/* dropdown menu */}
                 {dropdownOpen && (
-                  <div className="absolute right-0 mt-2 w-40 bg-white border rounded-lg shadow-lg">
+                  <div className="absolute right-6 top-16 right-38 w-56 bg-white border border-gray-200 rounded-2xl shadow-xl py-1 z-50">
+                    <div className="px-4 py-3 border-b">
+                      <p className="font-semibold text-gray-900">{user.name}</p>
+                      <p className="text-sm text-gray-500 truncate">{user.email}</p>
+                    </div>
+
                     <button
-                      onClick={() => navigate("/dashboard")}
-                      className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                      onClick={() => {
+                        navigate("/dashboard");
+                        setDropdownOpen(false);
+                      }}
+                      className="block w-full rounded-2xl text-left px-4 py-2.5 hover:bg-gray-100 text-gray-700"
                     >
                       Dashboard
                     </button>
+
                     <button
-                      onClick={logout}
-                      className="block w-full text-left px-4 py-2 text-red-500 hover:bg-gray-100"
+                      onClick={() => {
+                        logout();
+                      }}
+                      className="block w-full rounded-2xl text-left px-4 py-2.5 text-red-600 hover:bg-red-50"
                     >
                       Logout
                     </button>
-                  </div>
-                )}
+                  </div>  
+                )}       {/*dropdown ends here */}
               </div>
             )}
           </div>
-
         </div>
       </div>
     </header>

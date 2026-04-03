@@ -23,7 +23,6 @@ exports.registerUser = async(req, res) => {
 
     const hashedPw = await bcrypt.hashSync(password, 10)
 
-
     await User.create({
         name,
         email,
@@ -72,10 +71,19 @@ exports.loginUser = async(req, res) => {
     const token = jwt.sign({id: userFound._id}, process.env.SECRET_KEY, {
         expiresIn: '5h'
     })
+
+
+
+    // remove sensitive fields
+    const userObj = userFound.toObject();
+    delete userObj.password;
+    delete userObj.__v;
+
     
     res.status(200).json({
         message: "Login successful.",
-        token
+        token,
+        user: userObj
     })
 }
 
