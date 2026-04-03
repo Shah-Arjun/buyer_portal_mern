@@ -123,7 +123,6 @@ exports.deleteProperty = async (req, res) => {
 
 //get my all properties  --> by all seller/owner
 exports.getMyProperties = async (req, res) => {
-    console.log("hello")
     const ownerId = req.user.id
 
     const property = await Property.find({ owner : ownerId })
