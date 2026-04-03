@@ -45,9 +45,9 @@ function Navbar() {
             </a>
           </div>
 
-          {/* Mobile Menu Button */}
+          {/* mobile menu button */}
           <div className="md:hidden">
-            {/* Add hamburger menu here if needed */}
+            {/* hamburger menu here if needed */}
           </div>
         </div>
       </div>
