@@ -15,7 +15,7 @@ dotenv.config()
 
 const cors = require('cors');
 app.use(cors({
-  origin: "https://buyer-portal-mern.vercel.app",
+  origin: ["https://buyer-portal-mern.vercel.app", "http://localhost:5173"],
   credentials: true
 }));
 
