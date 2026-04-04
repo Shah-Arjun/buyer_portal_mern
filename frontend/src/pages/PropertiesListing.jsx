@@ -23,7 +23,7 @@ function PropertiesListing() {
     const fetchProperties = async () => {
       try {
         setLoading(true);
-        const res = await axios.get("http://localhost:5000/api/property");
+        const res = await axios.get("https://buyer-portal-mern.onrender.com/api/property");
         const data = res.data.properties || res.data || [];
         setProperties(data ? data : []);
       } catch (err) {

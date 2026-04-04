@@ -15,7 +15,7 @@ function HomePage() {
         setLoading(true);
         setError(null);
 
-        const res = await axios.get("http://localhost:5000/api/property");
+        const res = await axios.get("https://buyer-portal-mern.onrender.com/api/property");
 
         console.log("res---------->",res.data)   //array
 
