@@ -68,11 +68,9 @@ exports.loginUser = async(req, res) => {
     }
 
     //generate token
-    const token = jwt.sign({id: userFound._id}, process.env.SECRET_KEY, {
+    const token = jwt.sign({id: userFound._id, role: userFound.role}, process.env.SECRET_KEY, {
         expiresIn: '5h'
     })
-
-
 
     // remove sensitive fields
     const userObj = userFound.toObject();
