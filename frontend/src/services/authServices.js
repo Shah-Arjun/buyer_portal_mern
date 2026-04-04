@@ -1,8 +1,11 @@
 import axios from "axios";
 
+
+
 const API = axios.create({
-  baseURL: "https://buyer-portal-mern.onrender.com/api",
+  baseURL: import.meta.env.VITE_BACKEND_BASE_URL,
 });
+
 
 // Add token to headers automatically in every request
 API.interceptors.request.use((config) => {
@@ -12,5 +15,7 @@ API.interceptors.request.use((config) => {
   }
   return config;
 });
+
+
 
 export default API;

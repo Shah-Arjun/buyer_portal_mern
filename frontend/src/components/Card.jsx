@@ -3,66 +3,68 @@ import { useNavigate } from "react-router-dom";
 import { Heart } from "lucide-react";
 import API from "../services/authServices";
 
-function Card({ property }) {
+
+
+const Card = ({ property }) => {
   const navigate = useNavigate();
   const [isFavourite, setIsFavourite] = useState(false);
 
-  // Toggle favourite with optimistic update
-const toggleFavourite = async (e) => {
-  e.stopPropagation();
-  if (!property?._id) return;
+  //heart/favourite click toggle function
+  const toggleFavourite = async (e) => {
+    e.stopPropagation();   //prevents parent click event -> without this clicking hear would open property page
+    if(!property?._id) return;
 
-  const previousState = isFavourite;
-
-  try {
-    // Optimistic UI update
-    setIsFavourite((prev) => !prev);
-
-    // FIXED: Use correct endpoint
-    const res = await API.post("/favourites/toggle", {
-      propertyId: property._id,
-    });
-
-    // Update with backend response
-    setIsFavourite(res.data.isFavourite === true);   // make sure it's boolean
-
-    // Notify Navbar and Dashboard to refresh
-    window.dispatchEvent(new Event("favouritesUpdated"));
-  } catch (err) {
-    console.error("Toggle favourite failed:", err);
-
-    if (err.response?.status === 404) {
-      console.warn("Toggle endpoint not found. Check your route mounting.");
-    } else {
-      setIsFavourite(previousState); // revert on real error
-    }
-  }
-};
-
-  // Check initial favourite status
-useEffect(() => {
-  const checkFavourite = async () => {
-    if (!property?._id) return;
+    const previousState = isFavourite;
 
     try {
-      const res = await API.get("/favourites");        // ← This is correct
-      const exists = res.data.favourites?.some(
-        (item) => item._id === property._id
-      );
-      setIsFavourite(exists);
+      setIsFavourite((prev) => !prev);  //toggle
+
+      const res = await API.post("/favourites/toggle", {
+        propertyId: property._id,
+      });
+
+      console.log(res.data)
+      
+      // Update with backend response
+      setIsFavourite(res.data.isFavourite === true);
+
+      // notify  Navbar and Dashboard to refresh
+      window.dispatchEvent(new Event("favouritesUpdated"));
     } catch (err) {
+      console.error("Toggle favourite failed:", err);
+
       if (err.response?.status === 404) {
-        console.warn("Favourites endpoint not ready");
-        setIsFavourite(false);
+        console.warn("Toggle endpoint not found. Check your route mounting.");
       } else {
-        console.error("Failed to fetch favourite status:", err);
-        setIsFavourite(false);
+        setIsFavourite(previousState); // revert on real error
       }
     }
   };
 
-  checkFavourite();
-}, [property._id]);
+  // Check initial favourite status
+  useEffect(() => {
+    const checkFavourite = async () => {
+      if (!property?._id) return;
+
+      try {
+        const res = await API.get("/favourites"); // ← This is correct
+        const exists = res.data.favourites?.some(
+          (item) => item._id === property._id,
+        );
+        setIsFavourite(exists);
+      } catch (err) {
+        if (err.response?.status === 404) {
+          console.warn("Favourites endpoint not ready");
+          setIsFavourite(false);
+        } else {
+          console.error("Failed to fetch favourite status:", err);
+          setIsFavourite(false);
+        }
+      }
+    };
+
+    checkFavourite();
+  }, [property._id]);
 
   const handleViewDetails = () => {
     navigate(`/property/${property._id}`);
@@ -131,26 +133,26 @@ useEffect(() => {
         </div>
 
         {/* Action Buttons */}
-        <div className="flex flex-col sm:flex-row gap-2 mt-4">
+        <div className="flex flex-row sm:flex-row gap-2 mt-4">
           <button
             onClick={(e) => {
               e.stopPropagation();
               handleViewDetails();
             }}
-            className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white text-xs sm:text-sm font-medium py-2.5 rounded-lg transition-all active:scale-[0.97]"
+            className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white text-xs sm:text-sm font-medium py-2 rounded-lg transition-all active:scale-[0.97]"
           >
             View Details
           </button>
 
           <button
             onClick={toggleFavourite}
-            className={`flex-1 border text-xs sm:text-sm font-medium py-2.5 rounded-lg transition-all active:scale-[0.97] ${
+            className={`flex-1 border text-xs sm:text-sm font-medium py-2 rounded-lg transition-all active:scale-[0.97] ${
               isFavourite
                 ? "border-red-500 text-red-500 bg-red-50"
                 : "border-gray-300 hover:border-gray-400"
             }`}
           >
-            {isFavourite ? "Saved ❤️" : "Save"}
+            {isFavourite ? "Saved ❤️" : "Favourite"}
           </button>
         </div>
       </div>

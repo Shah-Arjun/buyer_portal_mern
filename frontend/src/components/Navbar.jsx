@@ -100,7 +100,7 @@ setFavouritesCount(res.data.favourites?.length || 0);      } catch (err) {
             </button>
 
             {/* Favourites Button */}
-            <button
+            {user && (<button
               onClick={() => navigate("/dashboard")}
               className="relative flex items-center gap-2 px-4 py-2 text-gray-700 hover:text-red-500 transition rounded-full hover:bg-gray-100"
             >
@@ -112,6 +112,8 @@ setFavouritesCount(res.data.favourites?.length || 0);      } catch (err) {
               )}
               <span className="hidden sm:inline font-medium">Favourites</span>
             </button>
+          )}
+
 
             {/* Auth Section */}
             {!user ? (
