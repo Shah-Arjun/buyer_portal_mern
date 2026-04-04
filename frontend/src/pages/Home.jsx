@@ -1,14 +1,25 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import { MoveRight } from "lucide-react";
+
+//components
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import Card from "../components/Card";
-import axios from "axios";
+
+
 
 function HomePage() {
-  const [properties, setProperties] = useState([]);   // Always start as empty array
+  const navigate = useNavigate();
+
+  const [properties, setProperties] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
 
+
+  // fetch all properties
   useEffect(() => {
     const fetchProperties = async () => {
       try {
@@ -16,16 +27,10 @@ function HomePage() {
         setError(null);
 
         const res = await axios.get("https://buyer-portal-mern.onrender.com/api/property");
-
-        console.log("res---------->",res.data)   //array
-
-        setProperties(res.data.properties);
-       
+        setProperties(res.data.properties || []);
       } catch (err) {
         console.error("Error fetching properties:", err);
         setError("Failed to load properties. Please try again.");
-        setProperties([]);  
-
       } finally {
         setLoading(false);
       }
@@ -33,6 +38,24 @@ function HomePage() {
 
     fetchProperties();
   }, []);
+
+
+
+  // filter properties based on search text
+  const filteredProperties = properties.filter((property) => {
+    if (!searchTerm.trim()) return true;  //show all if no search term
+
+    const term = searchTerm.toLowerCase().trim();
+    return (
+      property.title?.toLowerCase().includes(term) ||
+      property.location?.toLowerCase().includes(term) ||
+      property.description?.toLowerCase().includes(term) 
+    );
+  });
+
+
+  // show only 8 properties on home page on render
+  const featuredProperties = filteredProperties.slice(0, 8);
 
 
 
@@ -46,58 +69,61 @@ function HomePage() {
         <h1 className="text-4xl md:text-5xl font-bold mb-4">Find Your Dream Property</h1>
         <p className="text-lg mb-6">Buy, sell, and rent properties across Nepal easily</p>
 
+        {/* search bar */}
         <div className="max-w-xl mx-auto flex bg-white rounded-full overflow-hidden shadow-lg">
           <input
             type="text"
-            placeholder="Search location, property type..."
-            className="flex-grow px-4 py-3 text-gray-700 outline-none"
+            placeholder="Search by location or property title..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="flex-grow px-6 py-4 text-gray-700 outline-none text-md"
           />
-          <button className="bg-indigo-500 px-8 border border-white rounded-full text-white font-semibold hover:bg-indigo-400 transition">
-            Search
-          </button>
+          <button className="bg-indigo-500 px-10 text-white font-semibold rounded-full border border-gray-100 hover:bg-indigo-600 transition">Search</button>
         </div>
       </section>
 
-      {/* FEATURED PROPERTIES */}
+
+
+      {/* LISTING FEATURED PROPERTIES */}
       <section className="py-16 max-w-7xl mx-auto px-4">
-        <h2 className="text-3xl font-bold text-gray-800 mb-10 text-center">
-          Featured Properties
-        </h2>
+        <div className="flex justify-between items-center mb-10">
+          <h2 className="text-3xl font-bold text-gray-800">Featured Properties</h2>
+          <p className="text-gray-500 text-sm">Showing {featuredProperties.length} of {filteredProperties.length} properties</p>
+        </div>
 
         {loading && (
-          <div className="flex justify-center py-20">
-            <p className="text-gray-600 text-lg">Loading properties...</p>
-          </div>
+          <div className="text-center py-20 text-lg">Loading properties...</div>
         )}
 
-        {error && (
-          <div className="text-center py-12">
-            <p className="text-red-500 text-md">{error}</p>
-          </div>
+        {error && <div className="text-center py-12 text-red-500">{error}</div>}
+
+        {/* fi searched term not matched */}
+        {!loading && !error && featuredProperties.length === 0 && (
+          <div className="text-center py-20 text-gray-500 text-xl">No properties found matching your search.</div>
         )}
 
-        {!loading && !error && properties.length === 0 && (
-          <div className="text-center py-12 text-gray-500">
-            No properties available at the moment.
-          </div>
-        )}
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
-          {properties.map((property) => (
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          {featuredProperties.map((property) => (
             <Card key={property._id} property={property} />
           ))}
         </div>
-      </section>
 
 
-      {/* CTA Section */}
-      <section className="bg-indigo-100 py-16 text-center">
-        <h2 className="text-3xl font-bold text-gray-800 mb-4">Want to Sell Your Property?</h2>
-        <p className="text-gray-600 mb-6">List your property and reach thousands of buyers</p>
-        <button className="bg-indigo-600 text-white px-8 py-3 rounded-full font-semibold hover:bg-indigo-500 transition">
-          Add Property
-        </button>
-      </section>
+        {/* view more button */}
+        <div className="flex justify-center mt-12">
+          <button
+            onClick={() => navigate("/properties")}
+            className="flex items-center gap-3 bg-white border-2 border-indigo-600 text-indigo-600 hover:bg-indigo-600 hover:text-white font-semibold px-4 py-2 hover:gap-5 rounded-full transition-all duration-300 text-md"
+          >
+            View All Properties
+            <MoveRight />
+          </button>
+        </div>    {/*view more button section ends here */}
+
+      </section>   {/*featured listing section ends here */}
+
+
 
       <Footer />
     </div>

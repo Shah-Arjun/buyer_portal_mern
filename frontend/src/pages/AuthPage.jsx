@@ -1,8 +1,17 @@
 import React, { useState } from 'react';
 import Logo from './../assets/property.png';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import { Eye, EyeOff } from "lucide-react";   
+
+
+
+
 
 function AuthPage() {
+    const { login } = useAuth();
+    const navigate = useNavigate();
+
     const [formData, setFormData] = useState({
         name: "",
         email: "",
@@ -13,9 +22,12 @@ function AuthPage() {
 
     const [isLogin, setIsLogin] = useState(true);
     const [loading, setLoading] = useState(false);
+    //for pw
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-    const navigate = useNavigate();
 
+    //handle input change
     const handleChange = (e) => {
         setFormData({
             ...formData,
@@ -23,6 +35,9 @@ function AuthPage() {
         });
     };
 
+
+
+    //reset form after failed/submit
     const resetForm = () => {
         setFormData({
             name: "",
@@ -32,17 +47,23 @@ function AuthPage() {
         });
     };
 
+
+
+    // handle form submit
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
 
         if (!formData.email || !formData.password) {
-            return alert("Please fill all fields");
+            alert("Please fill all fields");
+            setLoading(false);
+            return;
         }
 
         try {
+            //FOR LOGIN
             if (isLogin) {
-                // LOGIN
+                // hits backend api
                 const res = await fetch("https://buyer-portal-mern.onrender.com/api/auth/login", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
@@ -53,17 +74,16 @@ function AuthPage() {
                 });
 
                 const data = await res.json();
-
                 if (!res.ok) throw new Error(data.message || "Login failed");
 
-                localStorage.setItem("token", data.token);
-                localStorage.setItem("user", JSON.stringify(data.user));
+                login(data.user, data.token);
                 alert("Login successful!");
                 navigate("/");
             } else {
-                // SIGNUP
+                //FOR SIGNUP
                 if (formData.password !== formData.confirmPassword) {
-                    alert("Passwords do not match");
+                    alert("Confirm passwords did not match");
+                    setLoading(false);
                     return;
                 }
 
@@ -79,184 +99,193 @@ function AuthPage() {
                 });
 
                 const data = await res.json();
-
                 if (!res.ok) throw new Error(data.message || "Signup failed");
 
-                alert("Signup successful! Please login.");
+                alert("Successfully registered! Please login.");
                 setIsLogin(true);
                 resetForm();
             }
         } catch (err) {
-            console.error(err);
-            alert(err.message || "Something went wrong");
+            alert(err.message);
         } finally {
             setLoading(false);
         }
     };
 
     return (
-        <div className="flex min-h-full flex-col justify-center px-6 py-12 lg:px-8">
-            <div className="sm:mx-auto sm:w-full sm:max-w-sm">
-                <img src={Logo} alt="Company Logo" className="mx-auto h-20 w-auto mb-6" />
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+            <div className="max-w-6xl w-full">
+                <div className="flex flex-col lg:flex-row bg-white rounded-3xl shadow-xl overflow-hidden">
 
-                <h1 className="text-2xl font-bold text-gray-800 mb-6 text-center">
-                    Welcome to Adam's Real Estate
-                </h1>
+                    {/* ================================== LEFT SIDE ===================*/}
+                    <div className="lg:w-1/2 bg-indigo-600 p-8 lg:p-12 flex flex-col justify-center text-white">
+                        <div className="max-w-md mx-auto text-center lg:text-left">
+                            <img src={Logo} alt="Company Logo" className="mx-auto lg:mx-0 h-20 w-auto mb-8" />
+                            
+                            <h1 className="text-4xl lg:text-5xl font-bold mb-6 leading-tight">Welcome to Adam's Real Estate</h1>
+                            
+                            <p className="text-lg text-indigo-100">
+                                Find your perfect property in Nepal with ease. 
+                                Buy, sell, and discover amazing homes.
+                            </p>
 
-                {/* Toggle Buttons */}
-                <div className="relative flex bg-blue-500 rounded-full p-1 mb-8">
-                    <div
-                        className={`absolute top-1 left-1 w-1/2 h-[calc(100%-8px)] rounded-full bg-white transition-all duration-300 ease-in-out ${
-                            isLogin ? "translate-x-0" : "translate-x-full"
-                        }`}
-                    />
+                            <div className="hidden lg:block mt-12">
+                                <div className="flex items-center gap-4 text-sm opacity-75">
+                                    <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                                    Trusted by thousands of buyers
+                                </div>
+                            </div>
+                        </div>
+                    </div>    {/*left div ends here */}
 
-                    <button
-                        onClick={() => setIsLogin(true)}
-                        className={`relative z-10 w-1/2 py-2.5 text-sm font-semibold transition-colors rounded-full ${
-                            isLogin ? "text-gray-800" : "text-white"
-                        }`}
-                    >
-                        Login
-                    </button>
 
-                    <button
-                        onClick={() => setIsLogin(false)}
-                        className={`relative z-10 w-1/2 py-2.5 text-sm font-semibold transition-colors rounded-full ${
-                            !isLogin ? "text-gray-800" : "text-white"
-                        }`}
-                    >
-                        Sign Up
-                    </button>
+
+                    {/* ==================== RIGHT SIDE ====================== */}
+                    <div className="lg:w-1/2 p-8 lg:p-8">
+                        <div className="max-w-md mx-auto">
+                            <h2 className="text-2xl font-semibold text-gray-800 mb-8 text-center lg:text-left">
+                                {isLogin ? "Login to your account" : "Create new account"}
+                            </h2>
+
+                            {/* Toggle Buttons */}
+                            <div className="relative flex bg-gray-100 rounded-full p-1 mb-10">
+                                <div
+                                    className={`absolute top-1 left-1 w-1/2 h-[calc(100%-8px)] rounded-full bg-white shadow transition-all duration-300 ${
+                                        isLogin ? "translate-x-0" : "translate-x-full"
+                                    }`}
+                                />
+                                <button
+                                    onClick={() => setIsLogin(true)}
+                                    className={`relative z-10 w-1/2 py-3 text-sm font-semibold rounded-full transition-colors ${
+                                        isLogin ? "text-gray-900" : "text-gray-500"
+                                    }`}
+                                >
+                                    Login
+                                </button>
+                                <button
+                                    onClick={() => setIsLogin(false)}
+                                    className={`relative z-10 w-1/2 py-3 text-sm font-semibold rounded-full transition-colors ${
+                                        !isLogin ? "text-gray-900" : "text-gray-500"
+                                    }`}
+                                >
+                                    Sign Up
+                                </button>
+                            </div>
+
+                            <form onSubmit={handleSubmit} className="space-y-5">
+                                {/*name, role */}
+                                {!isLogin && (
+                                    <>
+                                        <div>
+                                            <input
+                                                name="name"
+                                                type="text"
+                                                required
+                                                placeholder='Enter full name...'
+                                                value={formData.name}
+                                                onChange={handleChange}
+                                                className="block w-full rounded-xl bg-gray-50 px-4 py-3 outline-none border border-gray-300 focus:border-indigo-500"
+                                            />
+                                        </div>
+
+                                        <div>
+                                            <select
+                                                name="role"
+                                                required
+                                                value={formData.role}
+                                                onChange={handleChange}
+                                                className="block w-full rounded-xl bg-gray-50 px-4 py-3 outline-none border border-gray-300 focus:border-indigo-500"
+                                            >
+                                                <option value="buyer">Buyer</option>
+                                                <option value="seller">Seller</option>
+                                            </select>
+                                        </div>
+                                    </>
+                                )}
+
+                                {/* email */}
+                                <div>
+                                    <input
+                                        name="email"
+                                        type="email"
+                                        required
+                                        placeholder='Enter your email...'
+                                        value={formData.email}
+                                        onChange={handleChange}
+                                        className="block w-full rounded-xl bg-gray-50 px-4 py-3 outline-none border border-gray-300 focus:border-indigo-500"
+                                    />
+                                </div>
+
+                                {/* password */}
+                                <div className=''>
+                                    <div className="relative">
+                                        <input
+                                            name="password"
+                                            type={showPassword ? "text" : "password"}
+                                            required
+                                            value={formData.password}
+                                            onChange={handleChange}
+                                            className="block w-full rounded-xl bg-gray-50 px-4 py-3 outline-none border border-gray-300 focus:border-indigo-500"
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowPassword(!showPassword)}
+                                            className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                                        >
+                                            {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                                        </button>
+                                    </div>
+                                    {isLogin && <p className='text-indigo-500 pt-2 text-end'>Forgot password?</p>}
+                                </div>
+
+                                {/* Confirm password --> if signup*/}
+                                {!isLogin && (
+                                    <div>
+                                        <div className="relative">
+                                            <input
+                                                name="confirmPassword"
+                                                type={showConfirmPassword ? "text" : "password"}
+                                                required
+                                                placeholder="Enter confirm password..."
+                                                value={formData.confirmPassword}
+                                                onChange={handleChange}
+                                                className="block w-full rounded-xl bg-gray-50 px-4 py-3 outline-none border border-gray-300 focus:border-indigo-500"
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                                className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                                            >
+                                                {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
+
+
+
+
+                                <button
+                                    type="submit"
+                                    disabled={loading}
+                                    className="w-full bg-indigo-600 text-white py-3.5 rounded-2xl font-semibold hover:bg-indigo-700 transition disabled:opacity-70 mt-4"
+                                >
+                                    {loading ? "Processing..." : isLogin ? "Login" : "Create Account"}
+                                </button>
+                            </form>
+
+                            <p className="mt-8 text-center text-sm text-gray-500">
+                                {isLogin ? "Don't have an account?" : "Already have an account?"}{" "}
+                                <span
+                                    onClick={() => { setIsLogin(!isLogin); resetForm(); }}
+                                    className="font-semibold text-indigo-600 hover:text-indigo-700 cursor-pointer"
+                                >
+                                    {isLogin ? "Sign up" : "Login"}
+                                </span>
+                            </p>
+                        </div>
+                    </div>  {/*right div ends here */}
                 </div>
-            </div>
-
-            <div className="sm:mx-auto sm:w-full sm:max-w-sm">
-                <form onSubmit={handleSubmit} className="space-y-6">
-                    {!isLogin && (
-                        <div>
-                            <label htmlFor="name" className="block text-sm font-medium text-gray-900">
-                                Full Name
-                            </label>
-                            <div className="mt-2">
-                                <input
-                                    id="name"
-                                    name="name"
-                                    type="text"
-                                    required
-                                    value={formData.name}
-                                    onChange={handleChange}
-                                    className="block w-full rounded-md bg-white px-3 py-2 text-gray-900 outline outline-1 outline-gray-300 focus:outline-2 focus:outline-indigo-600"
-                                />
-                            </div>
-                        </div>
-                    )}
-
-                    {!isLogin && (
-                        <div>
-                            <label htmlFor="role" className="block text-sm font-medium text-gray-900">
-                            Select Role
-                            </label>
-                            <div className="mt-2">
-                            <select
-                                id="role"
-                                name="role"
-                                required
-                                value={formData.role}
-                                onChange={handleChange}
-                                className="block w-full rounded-md bg-white px-3 py-2 text-gray-900 outline outline-1 outline-gray-300 focus:outline-2 focus:outline-indigo-600"
-                            >
-                                <option value="">-- Choose Role --</option>
-                                <option value="buyer">Buyer</option>
-                                <option value="seller">Seller</option>
-                            </select>
-                            </div>
-                        </div>
-                    )}
-
-                    <div>
-                        <label htmlFor="email" className="block text-sm font-medium text-gray-900">
-                            Email address
-                        </label>
-                        <div className="mt-2">
-                            <input
-                                id="email"
-                                name="email"
-                                type="email"
-                                required
-                                value={formData.email}
-                                onChange={handleChange}
-                                autoComplete="email"
-                                className="block w-full rounded-md bg-white px-3 py-2 text-gray-900 outline outline-1 outline-gray-300 focus:outline-2 focus:outline-indigo-600"
-                            />
-                        </div>
-                    </div>
-
-                    <div>
-                        <div className="flex items-center justify-between">
-                            <label htmlFor="password" className="block text-sm font-medium text-gray-900">
-                                Password
-                            </label>
-                            {isLogin && (
-                                <a href="#" className="text-sm font-semibold text-indigo-600 hover:text-indigo-500">
-                                    Forgot password?
-                                </a>
-                            )}
-                        </div>
-                        <div className="mt-2">
-                            <input
-                                id="password"
-                                name="password"
-                                type="password"
-                                required
-                                value={formData.password}
-                                onChange={handleChange}
-                                autoComplete={isLogin ? "current-password" : "new-password"}
-                                className="block w-full rounded-md bg-white px-3 py-2 text-gray-900 outline outline-1 outline-gray-300 focus:outline-2 focus:outline-indigo-600"
-                            />
-                        </div>
-                    </div>
-
-                    {!isLogin && (
-                        <div>
-                            <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-900">
-                                Confirm Password
-                            </label>
-                            <div className="mt-2">
-                                <input
-                                    id="confirmPassword"
-                                    name="confirmPassword"
-                                    type="password"
-                                    required
-                                    value={formData.confirmPassword}
-                                    onChange={handleChange}
-                                    className="block w-full rounded-md bg-white px-3 py-2 text-gray-900 outline outline-1 outline-gray-300 focus:outline-2 focus:outline-indigo-600"
-                                />
-                            </div>
-                        </div>
-                    )}
-
-                    <button
-                        type="submit"
-                        disabled={loading}
-                        className="w-full rounded-full bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-500 focus:outline-2 focus:outline-offset-2 focus:outline-indigo-600 disabled:opacity-70 disabled:cursor-not-allowed"
-                    >
-                        {loading ? "Processing..." : isLogin ? "Login" : "Create Account"}
-                    </button>
-                </form>
-
-                <p className="mt-8 text-center text-sm text-gray-500">
-                    {isLogin ? "Don't have an account?" : "Already have an account?"}{" "}
-                    <span
-                        onClick={() => {
-                            setIsLogin(!isLogin);
-                            resetForm();
-                        }}
-                        className="font-semibold text-indigo-600 hover:text-indigo-500 cursor-pointer"
-                    >
-                        {isLogin ? "Sign up" : "Login"}
-                    </span>
-                </p>
             </div>
         </div>
     );

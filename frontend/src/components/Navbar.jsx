@@ -3,44 +3,33 @@ import { useNavigate } from "react-router-dom";
 import API from "../services/authServices";
 import { Heart } from "lucide-react";
 import Logo from "../assets/property.png";
+import { useAuth } from "../context/AuthContext";
 
 function Navbar() {
   const navigate = useNavigate();
+  const { user, logout: contextLogout } = useAuth();
+
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [favouritesCount, setFavouritesCount] = useState(0);
 
-  // Lazy load user from localStorage
-  const [user, setUser] = useState(() => {
-    const token = localStorage.getItem("token");
-    const storedUser = localStorage.getItem("user");
-
-    if (token && storedUser) {
-      try {
-        return JSON.parse(storedUser);
-      } catch (err) {
-        console.error("Failed to parse user from localStorage:", err);
-        return null;
-      }
-    }
-    return null;
-  });
-
-  // Fetch favourites count
+  // Fetch favourites count - Optimized
   useEffect(() => {
+    let isMounted = true;
+
     const fetchFavouritesCount = async () => {
       if (!user) {
-        setFavouritesCount(0);
+        if (isMounted) setFavouritesCount(0);
         return;
       }
 
       try {
         const res = await API.get("/favourites");
-setFavouritesCount(res.data.favourites?.length || 0);      } catch (err) {
-        if (err.response?.status === 404) {
-          console.warn("Favourites endpoint (/favourites) not implemented yet on backend");
-          setFavouritesCount(0);
-        } else {
-          console.error("Failed to fetch favourites count:", err);
+        if (isMounted) {
+          setFavouritesCount(res.data.favourites?.length || 0);
+        }
+      } catch (err) {
+        if (isMounted) {
+          console.log(err)
           setFavouritesCount(0);
         }
       }
@@ -48,20 +37,19 @@ setFavouritesCount(res.data.favourites?.length || 0);      } catch (err) {
 
     fetchFavouritesCount();
 
-    // Listen for updates from Card component
     const handleFavouritesUpdate = () => fetchFavouritesCount();
     window.addEventListener("favouritesUpdated", handleFavouritesUpdate);
 
     return () => {
+      isMounted = false;
       window.removeEventListener("favouritesUpdated", handleFavouritesUpdate);
     };
-  }, [user]); // Re-run when user changes (login/logout)
+  }, [user]); // This will re-run immediately when user changes from context
 
-  const logout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    setUser(null);
+  const handleLogout = () => {
+    contextLogout();
     setFavouritesCount(0);
+    setDropdownOpen(false);
     navigate("/auth");
   };
 
@@ -73,10 +61,7 @@ setFavouritesCount(res.data.favourites?.length || 0);      } catch (err) {
         <div className="flex justify-between items-center h-16">
 
           {/* Logo */}
-          <div
-            className="flex-shrink-0 cursor-pointer"
-            onClick={() => navigate("/")}
-          >
+          <div className="flex-shrink-0 cursor-pointer" onClick={() => navigate("/")}>
             <img className="h-10 w-auto" src={Logo} alt="Adam's Real Estate" />
           </div>
 
@@ -90,30 +75,37 @@ setFavouritesCount(res.data.favourites?.length || 0);      } catch (err) {
 
           {/* Right Side */}
           <div className="hidden md:flex items-center gap-4">
-
             {/* Become Seller Button */}
             <button
-              onClick={() => navigate("/add-property")}
+              onClick={() => {
+                if (!user) {
+                  navigate("/auth");
+                } else if (user.role === "buyer") {
+                  navigate("/auth");
+                } else {
+                  navigate("/auth");   // if seller
+                }
+              }}
               className="px-5 py-2 rounded-full bg-indigo-600 text-white font-medium hover:bg-indigo-500 transition"
             >
-              Become Seller
+              {!user || user.role === "buyer" ? "Become Seller" : "Buy Property"}
             </button>
 
-            {/* Favourites Button */}
-            {user && (<button
-              onClick={() => navigate("/dashboard")}
-              className="relative flex items-center gap-2 px-4 py-2 text-gray-700 hover:text-red-500 transition rounded-full hover:bg-gray-100"
-            >
-              <Heart className="w-6 h-6" />
-              {favouritesCount > 0 && (
-                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full">
-                  {favouritesCount}
-                </span>
-              )}
-              <span className="hidden sm:inline font-medium">Favourites</span>
-            </button>
-          )}
-
+            {/* Favourites */}
+            {user && (
+              <button
+                onClick={() => navigate("/dashboard")}
+                className="relative flex items-center gap-2 px-4 py-2 text-gray-700 hover:text-red-500 transition rounded-full hover:bg-gray-100"
+              >
+                <Heart className="w-6 h-6" />
+                {favouritesCount > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full">
+                    {favouritesCount}
+                  </span>
+                )}
+                <span className="hidden sm:inline font-medium">Favourites</span>
+              </button>
+            )}
 
             {/* Auth Section */}
             {!user ? (
@@ -147,7 +139,6 @@ setFavouritesCount(res.data.favourites?.length || 0);      } catch (err) {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                 </svg>
 
-                {/* Dropdown Menu */}
                 {dropdownOpen && (
                   <div className="absolute right-0 top-0 mt-14 w-56 bg-white border border-gray-200 rounded-2xl shadow-xl py-1 z-50">
                     <div className="px-4 py-3 border-b">
@@ -156,17 +147,14 @@ setFavouritesCount(res.data.favourites?.length || 0);      } catch (err) {
                     </div>
 
                     <button
-                      onClick={() => {
-                        navigate("/dashboard");
-                        setDropdownOpen(false);
-                      }}
+                      onClick={() => { navigate("/dashboard"); setDropdownOpen(false); }}
                       className="block w-full text-left px-4 py-2.5 hover:bg-gray-100"
                     >
                       Dashboard
                     </button>
 
                     <button
-                      onClick={logout}
+                      onClick={handleLogout}
                       className="block w-full text-left px-4 py-2.5 text-red-600 hover:bg-red-50"
                     >
                       Logout

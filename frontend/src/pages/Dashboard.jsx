@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import { Heart, Trash2, ArrowLeft, User, Home, Settings, Eye } from "lucide-react";
 import API from "../services/authServices";
+
 
 
 
@@ -17,6 +18,7 @@ function Dashboard() {
 
   const [favourites, setFavourites] = useState([]);
   const [loading, setLoading] = useState(true);
+
 
 
 
@@ -39,30 +41,26 @@ function Dashboard() {
     }
   };
 
-
-
   useEffect(() => {
     fetchFavourites();
 
-    // Listen for updates from Card component
     const handleUpdate = () => fetchFavourites();
     window.addEventListener("favouritesUpdated", handleUpdate);
 
     return () => window.removeEventListener("favouritesUpdated", handleUpdate);
   }, [user]);
 
-  // Remove favourite using backend toggle
+
+
+
+
+  // Remove favourite
   const removeFavourite = async (propertyId) => {
     if (!propertyId) return;
 
     try {
-      // Call the same toggle endpoint used in Card
       await API.post("/favourites/toggle", { propertyId });
-
-      // Refresh the list after removal
       await fetchFavourites();
-
-      // Notify Navbar to update count
       window.dispatchEvent(new Event("favouritesUpdated"));
     } catch (err) {
       console.error("Failed to remove favourite:", err);
@@ -84,6 +82,9 @@ function Dashboard() {
     );
   }
 
+
+
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
@@ -91,16 +92,15 @@ function Dashboard() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 lg:py-8">
         <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
 
-          {/* Sidebar */}
+          {/* Sidebar -left */}
           <div className="lg:w-72 bg-white rounded-3xl shadow p-6 h-fit lg:sticky lg:top-24">
-            <button
-              onClick={() => navigate("/")}
-              className="flex items-center gap-3 px-4 py-3 mb-6 text-left rounded-2xl hover:bg-gray-100 transition w-full"
-            >
+            <Link to="/" className="flex items-center gap-3 px-4 py-3 mb-6 text-left rounded-2xl hover:bg-gray-100 transition w-full" >
               <ArrowLeft className="w-5 h-5" />
               <span>Back to Listings</span>
-            </button>
+            </Link>
 
+
+            {/* user info */}
             {user && (
               <div className="flex flex-col items-center text-center mb-8">
                 <div className="w-20 h-20 rounded-2xl bg-indigo-600 text-white flex items-center justify-center text-4xl font-bold mb-4">
@@ -114,33 +114,40 @@ function Dashboard() {
               </div>
             )}
 
+            {/* Links section */}
             <div className="space-y-1">
+              {/* Active links */}
               <div className="flex items-center gap-3 px-4 py-3 bg-indigo-50 text-indigo-700 rounded-2xl font-medium">
                 <Heart className="w-5 h-5" />
                 My Favourites
-                <span className="ml-auto bg-white px-3 py-0.5 rounded-full text-sm font-semibold">
-                  {favourites.length}
-                </span>
+                <span className="ml-auto bg-white px-3 py-0.5 rounded-full text-sm font-semibold">{favourites.length}</span>
               </div>
 
-              <button className="w-full flex items-center gap-3 px-4 py-3 text-left rounded-2xl hover:bg-gray-100 transition">
+              {/* Other links */}
+              <Link to="/dashboard" className="w-full flex items-center gap-3 px-4 py-3 text-left rounded-2xl hover:bg-gray-100 transition" >
                 <Home className="w-5 h-5" />
                 My Properties
-              </button>
+              </Link>
 
-              <button className="w-full flex items-center gap-3 px-4 py-3 text-left rounded-2xl hover:bg-gray-100 transition">
+              <Link to="/dashboard/profile" className="w-full flex items-center gap-3 px-4 py-3 text-left rounded-2xl hover:bg-gray-100 transition" >
                 <User className="w-5 h-5" />
                 My Profile
-              </button>
+              </Link>
 
-              <button className="w-full flex items-center gap-3 px-4 py-3 text-left rounded-2xl hover:bg-gray-100 transition">
+              <Link
+                to="/dashboard/settings"
+                className="w-full flex items-center gap-3 px-4 py-3 text-left rounded-2xl hover:bg-gray-100 transition"
+              >
                 <Settings className="w-5 h-5" />
                 Settings
-              </button>
+              </Link>
             </div>
-          </div>
+          </div>     {/*sidebar ends here */}
 
-          {/* Main Content */}
+
+
+
+          {/* Main dashboard content - right */}
           <div className="flex-1">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
               <div>
@@ -165,16 +172,13 @@ function Dashboard() {
                 <Heart className="w-20 h-20 mx-auto text-gray-300 mb-4" />
                 <h3 className="text-2xl font-medium text-gray-400">No favourites yet</h3>
                 <p className="text-gray-500 mt-2">Saved properties will appear here</p>
-                <button
-                  onClick={() => navigate("/properties")}
-                  className="mt-8 px-8 py-3 bg-indigo-600 text-white rounded-2xl hover:bg-indigo-700 transition"
-                >
+                <button onClick={() => navigate("/properties")} className="mt-8 px-8 py-3 bg-indigo-600 text-white rounded-2xl hover:bg-indigo-700 transition" >
                   Browse Properties
                 </button>
               </div>
             ) : (
               <>
-                {/* Desktop Table View */}
+                {/* Desktop table view of favourite list */}
                 <div className="hidden lg:block bg-white rounded-3xl shadow overflow-hidden">
                   <table className="w-full">
                     <thead>
@@ -190,22 +194,13 @@ function Dashboard() {
                         <tr key={property._id} className="border-b hover:bg-gray-50 transition">
                           <td className="py-5 px-6 font-medium">{property.title}</td>
                           <td className="py-5 px-6 text-gray-600">{property.location}</td>
-                          <td className="py-5 px-6 text-right font-bold text-indigo-600">
-                            Rs. {Number(property.price).toLocaleString()}
-                          </td>
+                          <td className="py-5 px-6 text-right font-bold text-indigo-600">Rs. {Number(property.price).toLocaleString()}</td>
                           <td className="py-5 px-6">
                             <div className="flex justify-center gap-3">
-                              <button
-                                onClick={() => navigate(`/property/${property._id}`)}
-                                className="flex items-center gap-2 px-4 py-2 bg-indigo-50 text-indigo-700 rounded-2xl hover:bg-indigo-100 transition"
-                              >
-                                <Eye className="w-5 h-5" />
-                                View
+                              <button onClick={() => navigate(`/property/${property._id}`)} className="flex items-center gap-2 px-4 py-2 bg-indigo-50 text-indigo-700 rounded-2xl hover:bg-indigo-100 transition">
+                                <Eye className="w-5 h-5" /> View
                               </button>
-                              <button
-                                onClick={() => removeFavourite(property._id)}
-                                className="p-3 text-red-500 hover:bg-red-50 rounded-2xl transition"
-                              >
+                              <button onClick={() => removeFavourite(property._id)} className="p-3 text-red-500 hover:bg-red-50 rounded-2xl transition" >
                                 <Trash2 className="w-5 h-5" />
                               </button>
                             </div>
@@ -214,7 +209,9 @@ function Dashboard() {
                       ))}
                     </tbody>
                   </table>
-                </div>
+                </div>    {/*desktop view of favourites property end here */}
+
+
 
                 {/* Mobile Card View */}
                 <div className="grid md:grid-cols-2 gap-4 lg:hidden">
@@ -226,10 +223,7 @@ function Dashboard() {
                           alt={property.title}
                           className="w-full h-48 object-cover"
                         />
-                        <button
-                          onClick={() => removeFavourite(property._id)}
-                          className="absolute top-4 right-4 p-3 bg-white rounded-2xl shadow hover:bg-red-50 text-red-500 transition"
-                        >
+                        <button onClick={() => removeFavourite(property._id)} className="absolute top-4 right-4 p-3 bg-white rounded-2xl shadow hover:bg-red-50 text-red-500 transition">
                           <Trash2 className="w-5 h-5" />
                         </button>
                       </div>
@@ -240,20 +234,18 @@ function Dashboard() {
                           <span className="text-2xl font-bold text-indigo-600">
                             Rs. {Number(property.price).toLocaleString()}
                           </span>
-                          <button
-                            onClick={() => navigate(`/property/${property._id}`)}
-                            className="px-5 py-2 bg-indigo-600 text-white rounded-2xl text-sm hover:bg-indigo-700 transition"
-                          >
+                          <button onClick={() => navigate(`/property/${property._id}`)} className="px-5 py-2 bg-indigo-600 text-white rounded-2xl text-sm hover:bg-indigo-700 transition">
                             View Details
                           </button>
                         </div>
                       </div>
                     </div>
                   ))}
-                </div>
+                </div>   {/*mobile view of favourites property end here */}
               </>
             )}
-          </div>
+
+          </div> {/*desktop main property here*/}
         </div>
       </div>
     </div>

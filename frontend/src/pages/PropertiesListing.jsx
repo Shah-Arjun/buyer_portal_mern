@@ -4,9 +4,18 @@ import Card from "../components/Card";
 import axios from "axios";
 import { Search, SlidersHorizontal } from "lucide-react";
 
+
+
+
+// oprions for filter
 const categories = ["All", "Apartment", "House", "Land", "Commercial", "Flat", "Studio"];
 
-function PropertiesListing() {
+
+
+
+
+
+const PropertiesListing = () => {
   const [properties, setProperties] = useState([]);
   const [filteredProperties, setFilteredProperties] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -16,6 +25,7 @@ function PropertiesListing() {
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [sortOption, setSortOption] = useState("newest");
   const [priceRange, setPriceRange] = useState([0, 50000000]); // min and max price
+
 
 
   // Fetch Properties
@@ -36,7 +46,9 @@ function PropertiesListing() {
   }, []);
 
 
-  // Apply Filters
+
+
+  // Apply filters
   useEffect(() => {
     let result = [...properties];
 
@@ -47,13 +59,13 @@ function PropertiesListing() {
       );
     }
 
-    // Price Range Filter
+    // Price range filter
     result = result.filter(p => {
       const price = Number(p.price);
       return price >= priceRange[0] && price <= priceRange[1];
     });
 
-    // Search Filter
+    // Search bu text filter
     if (searchTerm.trim()) {
       const term = searchTerm.toLowerCase();
       result = result.filter(p =>
@@ -83,6 +95,11 @@ function PropertiesListing() {
     setFilteredProperties(result);
   }, [searchTerm, selectedCategory, sortOption, priceRange, properties]);
 
+
+
+
+
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
@@ -90,7 +107,7 @@ function PropertiesListing() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
         <div className="flex flex-col lg:flex-row gap-8">
           
-          {/* Sidebar Filters */}
+          {/* ============================Sidebar filters --> left=========================== */}
           <div className="lg:w-60 bg-white rounded-3xl shadow p-6 h-fit lg:sticky lg:top-24">
             <h1 className="text-2xl font-bold text-gray-800 mb-2">All Properties</h1>
             <p className="text-gray-600 mb-12 ">{filteredProperties.length} properties found</p>
@@ -99,7 +116,7 @@ function PropertiesListing() {
               Filters
             </h2>
 
-            {/* Category Filter */}
+            {/* Category filter */}
             <div className="mb-8">
               <h3 className="font-medium text-gray-700 mb-3">Category</h3>
               <div className="flex flex-wrap gap-2">
@@ -117,7 +134,9 @@ function PropertiesListing() {
                   </button>
                 ))}
               </div>
-            </div>
+            </div>  
+
+
 
             {/* Price Range Filter */}
             <div>
@@ -138,9 +157,11 @@ function PropertiesListing() {
                 </div>
               </div>
             </div>
-          </div>
+          </div>      {/*side bar ends here */}
 
-          {/* Main Content */}
+
+
+          {/* ====================Main Content --> right ===========================*/}
           <div className="flex-1">
             {/* Search & Sort Bar */}
             <div className="bg-white rounded-3xl shadow p-4 mb-8 flex flex-col sm:flex-row gap-4">
@@ -155,26 +176,20 @@ function PropertiesListing() {
                 />
               </div>
 
-              <select
-                value={sortOption}
-                onChange={(e) => setSortOption(e.target.value)}
-                className="px-5 py-3 rounded-2xl border border-gray-300 focus:border-indigo-500 outline-none bg-white"
-              >
+              <select value={sortOption} onChange={(e) => setSortOption(e.target.value)} className="px-5 py-3 rounded-2xl border border-gray-300 focus:border-indigo-500 outline-none bg-white">
                 <option value="price-low">Price: Low to High</option>
                 <option value="price-high">Price: High to Low</option>
               </select>
-              <select
-                value={sortOption}
-                onChange={(e) => setSortOption(e.target.value)}
-                className="px-5 py-3 rounded-2xl border border-gray-300 focus:border-indigo-500 outline-none bg-white"
-              >
+              <select value={sortOption} onChange={(e) => setSortOption(e.target.value)} className="px-5 py-3 rounded-2xl border border-gray-300 focus:border-indigo-500 outline-none bg-white">
                 <option value="newest">Newest First</option>
                 <option value="oldest">Oldest First</option>
-
               </select>
-            </div>
+            </div>    {/*search and sort bar ends here */}
 
-            {/* Properties Grid */}
+
+
+
+            {/* Properties grid list */}
             {loading ? (
               <div className="text-center py-20">Loading properties...</div>
             ) : filteredProperties.length === 0 ? (
@@ -189,7 +204,8 @@ function PropertiesListing() {
                 ))}
               </div>
             )}
-          </div>
+
+          </div>      {/*main contend ends here */}
         </div>
       </div>
     </div>
