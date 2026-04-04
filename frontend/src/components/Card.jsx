@@ -146,7 +146,9 @@ const Card = ({ property }) => {
           <span className="text-md font-bold text-indigo-600">Rs. {Number(property.price).toLocaleString()}</span>
         </div>
 
-        <div className="flex flex-row gap3 mt-3">
+
+      {/* action button */}
+        <div className="flex flex-row gap-2 mt-3">
           <button
             onClick={(e) => {
               e.stopPropagation();
