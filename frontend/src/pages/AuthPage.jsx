@@ -43,7 +43,7 @@ function AuthPage() {
         try {
             if (isLogin) {
                 // LOGIN
-                const res = await fetch("http://localhost:5000/api/auth/login", {
+                const res = await fetch("https://buyer-portal-mern.onrender.com/api/auth/login", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
@@ -67,7 +67,7 @@ function AuthPage() {
                     return;
                 }
 
-                const res = await fetch("http://localhost:5000/api/auth/register", {
+                const res = await fetch("https://buyer-portal-mern.onrender.com/api/auth/register", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
