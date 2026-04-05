@@ -66,7 +66,7 @@ function Navbar() {
           </div>
 
           {/* Nav Links */}
-          <nav className="hidden md:flex space-x-8 sm:space-x-2 ">
+          <nav className="hidden md:flex space-x-8 ">
             <a href="/" className="text-gray-700 hover:text-indigo-600 font-medium">Home</a>
             <a href="/properties" className="text-gray-700 hover:text-indigo-600 font-medium">Properties</a>
             <a href="/about" className="text-gray-700 hover:text-indigo-600 font-medium">About</a>
