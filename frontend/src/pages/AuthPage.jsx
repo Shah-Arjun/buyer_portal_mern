@@ -222,6 +222,7 @@ function AuthPage() {
                                         <input
                                             name="password"
                                             type={showPassword ? "text" : "password"}
+                                            placeholder='Enter password...'
                                             required
                                             value={formData.password}
                                             onChange={handleChange}

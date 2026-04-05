@@ -66,7 +66,7 @@ function Navbar() {
           </div>
 
           {/* Nav Links */}
-          <nav className="hidden md:flex space-x-8">
+          <nav className="hidden md:flex space-x-8 sm:space-x-2 ">
             <a href="/" className="text-gray-700 hover:text-indigo-600 font-medium">Home</a>
             <a href="/properties" className="text-gray-700 hover:text-indigo-600 font-medium">Properties</a>
             <a href="/about" className="text-gray-700 hover:text-indigo-600 font-medium">About</a>
@@ -83,10 +83,10 @@ function Navbar() {
                 } else if (user.role === "buyer") {
                   navigate("/auth");
                 } else {
-                  navigate("/auth");   // if seller
+                  navigate("/auth");   
                 }
               }}
-              className="px-5 py-2 rounded-full bg-indigo-600 text-white font-medium hover:bg-indigo-500 transition"
+              className="px-5 py-2 rounded-full bg-indigo-600 text-white font-medium hover:bg-indigo-500 transition sm:p-2"
             >
               {!user || user.role === "buyer" ? "Become Seller" : "Buy Property"}
             </button>
