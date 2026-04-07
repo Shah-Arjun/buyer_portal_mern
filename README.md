@@ -1,5 +1,5 @@
 # buyer_portal_mern
-A buyer portal with authentication developed using MERN Stack
+A realestate buyer portal with authentication developed using MERN Stack
 
 
 
